@@ -39,7 +39,7 @@ class SquareMapScreen extends StatefulWidget {
 
 class _SquareMapScreenState extends State<SquareMapScreen> {
   late Completer<GoogleMapController> _mapController = Completer();
-  Set<Polygon> _polylines = {};
+  Set<Polygon> _polygon = {};
   List<LatLng> _locations = [];
   Set<Marker> _marker = {};
   int id = 1;
@@ -49,6 +49,15 @@ class _SquareMapScreenState extends State<SquareMapScreen> {
 
   onMapCreated(GoogleMapController controller) async {
     _mapController.complete(controller);
+  }
+
+  Future<void> goToPositone() async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+        // target: LatLng(37.10601957198128, -
+        target: _locations[0],
+        zoom: 10,
+        tilt: 59.440)));
   }
 
   @override
@@ -80,6 +89,8 @@ class _SquareMapScreenState extends State<SquareMapScreen> {
                   .evaluateJavascript(source: 'getLatLongList()')
                   .then((result) {
                 _locations = _parseLocations(result);
+                print(
+                    "=======================================${_locations.length}");
               });
 
               conttroller
@@ -99,16 +110,12 @@ class _SquareMapScreenState extends State<SquareMapScreen> {
           ),
           GoogleMap(
             onMapCreated: onMapCreated,
-            polygons: _polylines,
+            polygons: _polygon,
             markers: _marker,
             initialCameraPosition: CameraPosition(
               target: LatLng(37.42796133580664, -122.085749655962),
               zoom: 10,
             ),
-            onTap: (latlong) {
-              print(
-                  "========================${latlong.latitude} , ${latlong.longitude}");
-            },
           ),
           _progress < 1
               ? SizedBox(
@@ -184,14 +191,37 @@ class _SquareMapScreenState extends State<SquareMapScreen> {
   }
 
   void addPolyLine(BuildContext con) {
-    _polylines.add(Polygon(
+    _polygon.add(Polygon(
         polygonId: PolygonId("p"),
         points: [..._locations, _locations[0]],
         fillColor: Colors.deepOrangeAccent,
         strokeWidth: 2,
-        onTap: () {},
+        consumeTapEvents: true,
+        onTap: () {
+          setState(() {
+            showCoordinates(con);
+          });
+        },
         strokeColor: Colors.red));
+    goToPositone();
+    addMarker();
     showCoordinates(con);
+    setState(() {});
+  }
+
+  void addMarker() async {
+    BitmapDescriptor bitmap = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "flutter_assets/asset/marker/icCir.png",
+    );
+
+    _locations.forEach((element) {
+      _marker.add(Marker(
+        markerId: MarkerId(element.toString()),
+        position: element,
+        icon: bitmap,
+      ));
+    });
     setState(() {});
   }
 
@@ -204,36 +234,49 @@ class _SquareMapScreenState extends State<SquareMapScreen> {
     showModalBottomSheet(
       context: con,
       builder: (context) {
-        return ListView(
-          shrinkWrap: true,
-          children: [
-            Text("LatLong"),
-            Container(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _locations.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(
-                        "${_locations[index].latitude}, ${_locations[index].longitude}"),
-                  );
-                },
+        return Container(
+          height: 200,
+          child: ListView(
+            physics: ScrollPhysics(),
+            shrinkWrap: true,
+            padding: EdgeInsets.all(16),
+            children: [
+              Text(
+                "LatLong",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
-            ),
-            const Text('UTM 32 Coordinate'),
-            Container(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _utm32Coordinates.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(
-                        "${_utm32Coordinates[index].easting}, ${_utm32Coordinates[index].northing}"),
-                  );
-                },
+              Container(
+                child: ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _locations.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: Text(
+                          "${_locations[index].latitude}, ${_locations[index].longitude}"),
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+              const Text(
+                'UTM 32 Coordinate',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              Container(
+                child: ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _utm32Coordinates.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      title: Text(
+                          "${_utm32Coordinates[index].easting}, ${_utm32Coordinates[index].northing}"),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
