@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate a Square on Google Map</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key="></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.3/proj4.js"></script>
+  <script>
+      // Define coordinate systems
+      proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs");
+      proj4.defs("EPSG:32632", "+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs");
+
+      function getLatLongList() {
+        var latlongList = [
+          {lat: 37.08263434700484, lng: -121.97304390370844},
+          {lat: 37.09055725997582, lng: -121.818721331656},
+          {lat: 37.14366481679104, lng: -121.82350169867276},
+          {lat: 37.13599763684532, lng: -121.96832388639449}
+        ];
+        return latlongList;
+      }
+
+      function initialize() {
+
+        // Define the square coordinates
+        var squareCoords = [
+          {lat: 37.08263434700484, lng: -121.97304390370844},
+          {lat: 37.09055725997582, lng: -121.818721331656},
+          {lat: 37.14366481679104, lng: -121.82350169867276},
+          {lat: 37.13599763684532, lng: -121.96832388639449}
+        ];
+
+        // Calculate UTM32 coordinates of the square corners
+        var utmCoords = squareCoords.map(function(coord) {
+          var fromCoords = [coord.lng, coord.lat];
+          var toCoords = proj4("EPSG:4326", "EPSG:32632", fromCoords);
+          return {easting: toCoords[0], northing: toCoords[1]};
+        });
+
+        return utmCoords;
+      }
+    </script>
+</head>
+<body>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.square_map">
    <application
-        android:label="square_map"
+        android:label="tiny_rebort_poc"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -38,3 +38,4 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET"/>
 </manifest>
+<!--    AIzaSyDjK0DlJH3z5923WljGKUaStwNpT9MpTa0-->
